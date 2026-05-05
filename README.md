@@ -1,90 +1,81 @@
-<div align="center">
+# Vortex Deploy
 
-# 🌪️ Vortex-Deploy
-### Industrial-Grade Self-Hosted CI/CD Engine
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-20.x-blue.svg)](https://nodejs.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-cyan.svg)](https://www.docker.com/)
-[![Build: Success](https://img.shields.io/badge/Build-Success-brightgreen.svg)]()
+Vortex Deploy is a self-hosted deployment dashboard for small web projects. It clones a Git repository, installs dependencies, runs a production build when one exists, and serves the deployed output from a local URL.
 
-**Vortex-Deploy** is a sophisticated, self-hosted deployment platform that automates the transition from "Commit" to "Production." It mirrors the core functionality of enterprise tools like Vercel and Netlify, but allows for 100% control on your own infrastructure.
+## Features
 
-[Architecture](#-system-architecture) • [Feature Matrix](#-feature-matrix) • [Quick Start](#-getting-started)
+- Clean local dashboard with deployment metrics, project controls, and live activity logs.
+- Safer deploy API with project-name validation and repository URL validation.
+- Persistent deployment metadata stored in `.vortex/deployments.json`.
+- Per-project build logs retained for quick debugging.
+- Server-sent events for live log and status updates.
+- Redeploy and delete actions from the UI.
+- Automatic static output detection for `dist`, `build`, `out`, and `public`.
+- Health endpoint for uptime and project counts.
 
-</div>
+## Quick Start
 
----
-
-## 🚀 Feature Matrix
-
-| Engine Component | Functionality | Business Value |
-| :--- | :--- | :--- |
-| **🔄 Auto-Sync** | Real-time GitHub Webhook polling. | Zero-Touch Deployment |
-| **⚙️ Build Orchestrator** | Multi-stage isolation (Audit -> Compile). | Production Stability |
-| **📊 Analytics Engine** | Real-time console logs & health metrics. | High Observability |
-| **🛡️ Secure Store** | AES-encrypted local deployment vault. | Data Sovereignty |
-| **🔌 Universal API** | RESTful endpoints for custom dashboards. | Scalable Architecture |
-
----
-
-## 📐 System Architecture
-
-<details>
-<summary><b>View Infrastructure Workflow</b></summary>
-
-Vortex-Deploy uses a stateless orchestrator that handles code synchronization before triggering an isolated build environment.
-
-```mermaid
-graph TD
-    A[GitHub Repo] -- Webhook/Poll --> B{Vortex Orchestrator}
-    B -- Pull --> C[Local Staging]
-    C -- Trigger --> D[Isolated Build Environment]
-    D -- Compile --> E[Production Image]
-    E -- Deploy --> F[Live Application]
+```bash
+npm install
+npm start
 ```
-</details>
 
----
+Open:
 
-## 🛠️ Tech Stack
+```text
+http://localhost:3000
+```
 
-<div align="center">
+## Deploy With The API
 
-| Core | Deployment | Tools |
-| :---: | :---: | :---: |
-| Node.js / ESM | Simple-Git | Chalk (Logs) |
-| Express.js | Docker API | Dotenv |
+```bash
+curl -X POST http://localhost:3000/deploy \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectName": "my-app",
+    "repoUrl": "https://github.com/user/my-app.git",
+    "branch": "main"
+  }'
+```
 
-</div>
+The live app will be served at:
 
----
+```text
+http://localhost:3000/host/my-app/
+```
 
-## 🏃 Getting Started
+## API
 
-<details>
-<summary><b>Installation Guide</b></summary>
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/health` | Engine status, uptime, and deployment counts. |
+| `GET` | `/projects` | List all deployments. |
+| `GET` | `/projects/:project` | Get one deployment, including logs. |
+| `POST` | `/deploy` | Clone or update a repo and build it. |
+| `POST` | `/projects/:project/redeploy` | Redeploy an existing project. |
+| `DELETE` | `/projects/:project` | Remove a deployment and local files. |
+| `GET` | `/events` | Server-sent deployment and log events. |
 
-1. **Clone Project**
-   ```bash
-   git clone https://github.com/kamalesh4044/vortex-deploy.git && cd vortex-deploy
-   ```
-2. **Setup Dependencies**
-   ```bash
-   npm install
-   ```
-3. **Trigger Deployment**
-   ```bash
-   curl -X POST http://localhost:3000/deploy \
-        -H "Content-Type: application/json" \
-        -d '{"repoUrl": "YOUR_REPO", "projectName": "my-app"}'
-   ```
-</details>
+## Deploy Options
 
----
+| Field | Required | Notes |
+| --- | --- | --- |
+| `projectName` | Yes | Lowercase letters, numbers, and hyphens. |
+| `repoUrl` | Yes | `http` or `https` Git repository URL. |
+| `branch` | No | Used on first clone. |
+| `installCommand` | No | NPM arguments such as `ci` or `install`. |
+| `buildCommand` | No | NPM arguments such as `run build`. |
 
-<div align="center">
+## Project Storage
 
-### Developed with 🖤 by [Kamal](https://github.com/kamalesh4044)
-*Part of the Elite Engineering Series*
+```text
+deployments/        cloned projects and build output
+.vortex/            deployment metadata
+public/             dashboard UI
+```
 
-</div>
+## Notes
+
+- Vortex Deploy currently runs Node/NPM builds directly on the host machine.
+- Use it on trusted infrastructure and deploy trusted repositories.
+- Set `PORT=4000` or another value to change the dashboard port.

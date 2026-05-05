@@ -3,145 +3,778 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vortex Control Center</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Vortex Deploy</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #ededed; }
-        .vortex-gradient { background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%); }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .neon-text { text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
-        .mono { font-family: 'JetBrains Mono', monospace; }
+        :root {
+            color-scheme: light;
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --panel-soft: #f0f4f8;
+            --text: #17202a;
+            --muted: #667085;
+            --line: #d8dee8;
+            --brand: #115e59;
+            --brand-strong: #0f766e;
+            --accent: #2f6fed;
+            --danger: #c2410c;
+            --success: #15803d;
+            --warning: #b45309;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.09);
+            --radius: 8px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            letter-spacing: 0;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: #101828;
+            color: white;
+            padding: 28px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #14b8a6, #2563eb);
+            font-weight: 800;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.15;
+        }
+
+        .brand p {
+            margin: 3px 0 0;
+            color: #aab4c4;
+            font-size: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            border-radius: var(--radius);
+            color: #d5dbea;
+            font-size: 14px;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.09);
+            color: white;
+        }
+
+        .system-card {
+            margin-top: auto;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .system-card span {
+            display: block;
+            color: #aab4c4;
+            font-size: 12px;
+        }
+
+        .system-card strong {
+            display: block;
+            margin-top: 6px;
+            font-size: 22px;
+        }
+
+        .main {
+            min-width: 0;
+            padding: 28px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .topbar p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            min-height: 40px;
+            border-radius: var(--radius);
+            padding: 0 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 13px;
+            transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: #b8c2d2;
+        }
+
+        .btn.primary {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: white;
+        }
+
+        .btn.danger {
+            color: var(--danger);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 390px minmax(0, 1fr);
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .panel-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .panel-header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .panel-body {
+            padding: 20px;
+        }
+
+        .form {
+            display: grid;
+            gap: 16px;
+        }
+
+        .field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .field label {
+            color: #344054;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .field input {
+            width: 100%;
+            min-height: 42px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: #fbfcfe;
+            color: var(--text);
+            padding: 0 12px;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.14);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            padding: 16px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 24px;
+        }
+
+        .project-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .project {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            padding: 16px;
+            background: #fbfcfe;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        .project h4 {
+            margin: 0 0 5px;
+            font-size: 15px;
+        }
+
+        .project p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            height: 26px;
+            padding: 0 9px;
+            border-radius: 999px;
+            background: var(--panel-soft);
+            color: #344054;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: capitalize;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #98a2b3;
+        }
+
+        .status.live .dot { background: var(--success); }
+        .status.failed .dot { background: var(--danger); }
+        .status.building .dot,
+        .status.syncing .dot,
+        .status.queued .dot { background: var(--warning); }
+
+        .project-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .empty {
+            padding: 30px;
+            text-align: center;
+            color: var(--muted);
+            background: #fbfcfe;
+            border: 1px dashed #c7d0de;
+            border-radius: var(--radius);
+        }
+
+        .logs {
+            height: 300px;
+            overflow: auto;
+            background: #0b1220;
+            color: #d6e1f5;
+            border-radius: var(--radius);
+            padding: 14px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .log-line {
+            display: grid;
+            grid-template-columns: 74px 72px minmax(0, 1fr);
+            gap: 10px;
+            padding: 2px 0;
+        }
+
+        .log-line span {
+            color: #7f8da8;
+        }
+
+        .log-line.success b { color: #86efac; }
+        .log-line.warn b { color: #fcd34d; }
+        .log-line.error b { color: #fca5a5; }
+        .log-line.info b { color: #93c5fd; }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            max-width: 360px;
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            background: #101828;
+            color: white;
+            box-shadow: var(--shadow);
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 180ms ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 1080px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .system-card {
+                margin-top: 0;
+                margin-left: auto;
+            }
+
+            .grid,
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .main,
+            .sidebar {
+                padding: 18px;
+            }
+
+            .topbar,
+            .project {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .toolbar,
+            .project-actions {
+                justify-content: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .log-line {
+                grid-template-columns: 1fr;
+                gap: 2px;
+                padding-bottom: 8px;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen p-8 lg:p-16">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
-            <div>
-                <h1 class="text-4xl font-bold tracking-tighter neon-text mb-2 flex items-center gap-3">
-                    <span class="vortex-gradient w-8 h-8 rounded-full inline-block animate-pulse"></span>
-                    VORTEX_CONTROL
-                </h1>
-                <p class="text-white/40 uppercase tracking-[0.3em] text-[10px] font-semibold">Self-Hosted Deployment Engine</p>
-            </div>
-            <div class="flex items-center gap-4 text-xs font-medium">
-                <div class="flex items-center gap-2 text-green-400">
-                    <span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
-                    SYSTEM_ONLINE
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">V</div>
+                <div>
+                    <h1>Vortex Deploy</h1>
+                    <p>Self-hosted release control</p>
                 </div>
-                <div class="h-4 w-[1px] bg-white/10"></div>
-                <div class="text-white/40 uppercase">v1.2.0-STABLE</div>
             </div>
-        </header>
+            <nav>
+                <div class="nav-item active">Dashboard</div>
+                <div class="nav-item">Deployments</div>
+                <div class="nav-item">Activity</div>
+            </nav>
+            <div class="system-card">
+                <span>Engine status</span>
+                <strong id="engineStatus">Online</strong>
+            </div>
+        </aside>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left: Deploy Form -->
-            <div class="lg:col-span-1">
-                <div class="glass p-8 rounded-3xl sticky top-8">
-                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
-                        🚀 NEW_DEPLOYMENT
-                    </h2>
-                    <form id="deployForm" class="space-y-6">
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <h2>Deployment Dashboard</h2>
+                    <p>Deploy, monitor, redeploy, and remove web apps from one clean local control panel.</p>
+                </div>
+                <div class="toolbar">
+                    <button class="btn" id="refreshBtn">Refresh</button>
+                    <a class="btn primary" href="/health" target="_blank">Health JSON</a>
+                </div>
+            </header>
+
+            <section class="metrics">
+                <div class="metric"><span>Total Projects</span><strong id="totalMetric">0</strong></div>
+                <div class="metric"><span>Live</span><strong id="liveMetric">0</strong></div>
+                <div class="metric"><span>Failed</span><strong id="failedMetric">0</strong></div>
+                <div class="metric"><span>Building</span><strong id="buildingMetric">0</strong></div>
+            </section>
+
+            <div class="grid">
+                <section class="panel">
+                    <div class="panel-header">
                         <div>
-                            <label class="block text-[10px] uppercase tracking-widest text-white/40 mb-2 font-bold">Project Name</label>
-                            <input type="text" id="projectName" required placeholder="e.g. aura-cart" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-cyan-500/50 transition-colors text-sm">
+                            <h3>New Deployment</h3>
+                            <p>Connect a Git repo and publish it locally.</p>
                         </div>
+                    </div>
+                    <div class="panel-body">
+                        <form class="form" id="deployForm">
+                            <div class="field">
+                                <label for="projectName">Project name</label>
+                                <input id="projectName" name="projectName" required pattern="[a-z0-9][a-z0-9-]{1,48}[a-z0-9]" placeholder="my-web-app">
+                            </div>
+                            <div class="field">
+                                <label for="repoUrl">Repository URL</label>
+                                <input id="repoUrl" name="repoUrl" required type="url" placeholder="https://github.com/user/project.git">
+                            </div>
+                            <div class="field">
+                                <label for="branch">Branch</label>
+                                <input id="branch" name="branch" placeholder="main">
+                            </div>
+                            <div class="field">
+                                <label for="installCommand">Install command</label>
+                                <input id="installCommand" name="installCommand" placeholder="ci">
+                            </div>
+                            <div class="field">
+                                <label for="buildCommand">Build command</label>
+                                <input id="buildCommand" name="buildCommand" placeholder="run build">
+                            </div>
+                            <button class="btn primary" id="deployBtn" type="submit">Deploy Project</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
                         <div>
-                            <label class="block text-[10px] uppercase tracking-widest text-white/40 mb-2 font-bold">Git Repository URL</label>
-                            <input type="url" id="repoUrl" required placeholder="https://github.com/..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-cyan-500/50 transition-colors text-sm">
+                            <h3>Projects</h3>
+                            <p>Latest deployment state and controls.</p>
                         </div>
-                        <button type="submit" class="w-full vortex-gradient text-black font-bold py-4 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(0,255,255,0.2)]">
-                            TRIGGER_BUILD
-                        </button>
-                    </form>
-                </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="project-list" id="projectList">
+                            <div class="empty">Loading deployments...</div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <!-- Right: Active Projects & Logs -->
-            <div class="lg:col-span-2 space-y-8">
-                <!-- Projects List -->
-                <div class="glass p-8 rounded-3xl">
-                    <h2 class="text-xl font-semibold mb-6">📂 ACTIVE_DEPLOYMENTS</h2>
-                    <div id="projectList" class="space-y-4">
-                        <p class="text-white/20 text-sm italic">Initializing deployment list...</p>
+            <section class="panel" style="margin-top:20px">
+                <div class="panel-header">
+                    <div>
+                        <h3>Live Activity</h3>
+                        <p>Build output and deployment events stream in here.</p>
                     </div>
+                    <button class="btn" id="clearLogsBtn">Clear</button>
                 </div>
-
-                <!-- Logs Terminal -->
-                <div class="glass p-8 rounded-3xl">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-semibold">📟 LIVE_ORCHESTRATOR_LOGS</h2>
-                        <span class="text-[10px] bg-white/10 px-2 py-1 rounded text-white/60">TTY: VORTEX_01</span>
-                    </div>
-                    <div id="logs" class="bg-black/40 rounded-2xl p-6 h-64 overflow-y-auto mono text-xs leading-relaxed border border-white/5 scrollbar-hide">
-                        <div class="text-cyan-500/60">> VORTEX ENGINE INITIALIZED...</div>
-                        <div class="text-white/20">> STANDBY: WAITING FOR TRIGGER...</div>
-                    </div>
+                <div class="panel-body">
+                    <div class="logs" id="logs"></div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script>
-        const projectList = document.getElementById('projectList');
-        const logs = document.getElementById('logs');
-        const deployForm = document.getElementById('deployForm');
-
-        function addLog(msg, color = 'text-white/40') {
-            const line = document.createElement('div');
-            line.className = color;
-            line.innerText = `> ${msg}`;
-            logs.appendChild(line);
-            logs.scrollTop = logs.scrollHeight;
-        }
-
-        async function fetchProjects() {
-            const res = await fetch('/projects');
-            const projects = await res.json();
-            projectList.innerHTML = projects.length ? projects.map(p => `
-                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-cyan-500/20 transition-all">
-                    <div>
-                        <div class="font-bold text-sm">${p.name.toUpperCase()}</div>
-                        <div class="text-[10px] text-white/40 uppercase mt-1 tracking-wider">
-                            Deployed: ${new Date(p.deployedAt).toLocaleString()}
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <a href="/host/${p.name}/index.html" target="_blank" class="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-bold rounded-full hover:bg-green-500/20 transition-all">VIEW_LIVE</a>
-                        <button class="text-white/20 hover:text-white transition-colors">⚙️</button>
-                    </div>
-                </div>
-            `).join('') : '<p class="text-white/20 text-sm">No active deployments detected.</p>';
-        }
-
-        deployForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const projectName = document.getElementById('projectName').value;
-            const repoUrl = document.getElementById('repoUrl').value;
-
-            addLog(`SIGNAL_RECEIVED: DEPLOY ${projectName.toUpperCase()}`, 'text-cyan-400 font-bold');
-            addLog(`SYNCHRONIZING WITH GITHUB: ${repoUrl}`, 'text-blue-400');
-
-            try {
-                const res = await fetch('/deploy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ projectName, repoUrl })
-                });
-                
-                const data = await res.json();
-                addLog(`BUILD_SUCCESS: ${projectName.toUpperCase()} IS LIVE`, 'text-green-400 font-bold');
-                addLog(`TARGET: http://localhost:3000/host/${projectName}/index.html`, 'text-green-400/60');
-                fetchProjects();
-                deployForm.reset();
-            } catch (err) {
-                addLog(`ERROR: ${err.message}`, 'text-red-400 font-bold');
-            }
+        const state = {
+            projects: [],
+            selectedProject: null,
         };
 
-        fetchProjects();
-        setInterval(fetchProjects, 10000);
+        const elements = {
+            form: document.getElementById('deployForm'),
+            deployBtn: document.getElementById('deployBtn'),
+            projectList: document.getElementById('projectList'),
+            logs: document.getElementById('logs'),
+            toast: document.getElementById('toast'),
+            totalMetric: document.getElementById('totalMetric'),
+            liveMetric: document.getElementById('liveMetric'),
+            failedMetric: document.getElementById('failedMetric'),
+            buildingMetric: document.getElementById('buildingMetric'),
+            engineStatus: document.getElementById('engineStatus'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            clearLogsBtn: document.getElementById('clearLogsBtn'),
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;',
+            }[char]));
+        }
+
+        function formatDate(value) {
+            if (!value) return 'Never';
+            return new Date(value).toLocaleString();
+        }
+
+        function toast(message) {
+            elements.toast.textContent = message;
+            elements.toast.classList.add('show');
+            setTimeout(() => elements.toast.classList.remove('show'), 2800);
+        }
+
+        function addLog(entry) {
+            const line = document.createElement('div');
+            const time = entry.time ? new Date(entry.time).toLocaleTimeString() : new Date().toLocaleTimeString();
+            const level = entry.level || 'info';
+            line.className = `log-line ${level}`;
+            line.innerHTML = `<span>${escapeHtml(time)}</span><b>${escapeHtml(level)}</b><div>${escapeHtml(entry.message)}</div>`;
+            elements.logs.appendChild(line);
+            elements.logs.scrollTop = elements.logs.scrollHeight;
+        }
+
+        function renderMetrics() {
+            const buildingStates = new Set(['queued', 'syncing', 'building']);
+            elements.totalMetric.textContent = state.projects.length;
+            elements.liveMetric.textContent = state.projects.filter((project) => project.status === 'live').length;
+            elements.failedMetric.textContent = state.projects.filter((project) => project.status === 'failed').length;
+            elements.buildingMetric.textContent = state.projects.filter((project) => buildingStates.has(project.status)).length;
+        }
+
+        function projectTemplate(project) {
+            const status = escapeHtml(project.status || 'unknown');
+            const repo = escapeHtml(project.repoUrl || '');
+            const name = escapeHtml(project.name);
+            const error = project.error ? `<p style="color:var(--danger);margin-top:6px">${escapeHtml(project.error)}</p>` : '';
+
+            return `
+                <article class="project">
+                    <div>
+                        <span class="status ${status}"><i class="dot"></i>${status}</span>
+                        <h4>${name}</h4>
+                        <p>${repo}</p>
+                        <p>Updated ${escapeHtml(formatDate(project.updatedAt))}</p>
+                        ${error}
+                    </div>
+                    <div class="project-actions">
+                        <a class="btn" href="${escapeHtml(project.url)}" target="_blank">Open</a>
+                        <button class="btn" data-action="logs" data-project="${name}">Logs</button>
+                        <button class="btn" data-action="redeploy" data-project="${name}">Redeploy</button>
+                        <button class="btn danger" data-action="delete" data-project="${name}">Delete</button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderProjects() {
+            renderMetrics();
+
+            if (!state.projects.length) {
+                elements.projectList.innerHTML = '<div class="empty">No deployments yet. Add a repository to publish your first project.</div>';
+                return;
+            }
+
+            elements.projectList.innerHTML = state.projects.map(projectTemplate).join('');
+        }
+
+        async function api(path, options = {}) {
+            const response = await fetch(path, {
+                headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                ...options,
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed.');
+            }
+
+            return data;
+        }
+
+        async function loadProjects() {
+            state.projects = await api('/projects');
+            renderProjects();
+        }
+
+        async function refreshHealth() {
+            try {
+                const health = await api('/health');
+                elements.engineStatus.textContent = health.status === 'ok' ? 'Online' : 'Degraded';
+            } catch {
+                elements.engineStatus.textContent = 'Offline';
+            }
+        }
+
+        elements.form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = new FormData(elements.form);
+            const payload = Object.fromEntries(form.entries());
+
+            elements.deployBtn.disabled = true;
+            elements.deployBtn.textContent = 'Deploying...';
+            addLog({ level: 'info', message: `Deployment requested for ${payload.projectName}` });
+
+            try {
+                await api('/deploy', {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+                elements.form.reset();
+                await loadProjects();
+                toast('Deployment completed.');
+            } catch (error) {
+                toast(error.message);
+                addLog({ level: 'error', message: error.message });
+            } finally {
+                elements.deployBtn.disabled = false;
+                elements.deployBtn.textContent = 'Deploy Project';
+            }
+        });
+
+        elements.projectList.addEventListener('click', async (event) => {
+            const target = event.target.closest('button[data-action]');
+            if (!target) return;
+
+            const projectName = target.dataset.project;
+            const action = target.dataset.action;
+
+            try {
+                if (action === 'logs') {
+                    const project = await api(`/projects/${projectName}`);
+                    elements.logs.innerHTML = '';
+                    (project.logs || []).forEach(addLog);
+                    toast(`Showing logs for ${projectName}.`);
+                }
+
+                if (action === 'redeploy') {
+                    target.disabled = true;
+                    await api(`/projects/${projectName}/redeploy`, { method: 'POST', body: '{}' });
+                    await loadProjects();
+                    toast(`${projectName} redeployed.`);
+                }
+
+                if (action === 'delete') {
+                    const confirmed = confirm(`Delete ${projectName} and its local files?`);
+                    if (!confirmed) return;
+                    await api(`/projects/${projectName}`, { method: 'DELETE' });
+                    await loadProjects();
+                    toast(`${projectName} deleted.`);
+                }
+            } catch (error) {
+                toast(error.message);
+                addLog({ level: 'error', message: error.message });
+            } finally {
+                target.disabled = false;
+            }
+        });
+
+        elements.refreshBtn.addEventListener('click', async () => {
+            await loadProjects();
+            await refreshHealth();
+            toast('Dashboard refreshed.');
+        });
+
+        elements.clearLogsBtn.addEventListener('click', () => {
+            elements.logs.innerHTML = '';
+        });
+
+        function connectEvents() {
+            const source = new EventSource('/events');
+            source.addEventListener('log', (event) => addLog(JSON.parse(event.data)));
+            source.addEventListener('project', async () => loadProjects());
+            source.addEventListener('deleted', async () => loadProjects());
+            source.onerror = () => {
+                elements.engineStatus.textContent = 'Reconnecting';
+            };
+        }
+
+        addLog({ level: 'info', message: 'Vortex dashboard ready.' });
+        connectEvents();
+        loadProjects();
+        refreshHealth();
+        setInterval(refreshHealth, 15000);
     </script>
 </body>
 </html>
