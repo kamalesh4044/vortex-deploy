@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #ededed; }
+        .vortex-gradient { background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .neon-text { text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="min-h-screen p-8 lg:p-16">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
+            <div>
+                <h1 class="text-4xl font-bold tracking-tighter neon-text mb-2 flex items-center gap-3">
+                    <span class="vortex-gradient w-8 h-8 rounded-full inline-block animate-pulse"></span>
+                    VORTEX_CONTROL
+                </h1>
+                <p class="text-white/40 uppercase tracking-[0.3em] text-[10px] font-semibold">Self-Hosted Deployment Engine</p>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-medium">
+                <div class="flex items-center gap-2 text-green-400">
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
+                    SYSTEM_ONLINE
+                </div>
+                <div class="h-4 w-[1px] bg-white/10"></div>
+                <div class="text-white/40 uppercase">v1.2.0-STABLE</div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left: Deploy Form -->
+            <div class="lg:col-span-1">
+                <div class="glass p-8 rounded-3xl sticky top-8">
+                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                        🚀 NEW_DEPLOYMENT
+                    </h2>
+                    <form id="deployForm" class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-white/40 mb-2 font-bold">Project Name</label>
+                            <input type="text" id="projectName" required placeholder="e.g. aura-cart" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-cyan-500/50 transition-colors text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-white/40 mb-2 font-bold">Git Repository URL</label>
+                            <input type="url" id="repoUrl" required placeholder="https://github.com/..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-cyan-500/50 transition-colors text-sm">
+                        </div>
+                        <button type="submit" class="w-full vortex-gradient text-black font-bold py-4 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(0,255,255,0.2)]">
+                            TRIGGER_BUILD
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Active Projects & Logs -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Projects List -->
+                <div class="glass p-8 rounded-3xl">
+                    <h2 class="text-xl font-semibold mb-6">📂 ACTIVE_DEPLOYMENTS</h2>
+                    <div id="projectList" class="space-y-4">
+                        <p class="text-white/20 text-sm italic">Initializing deployment list...</p>
+                    </div>
+                </div>
+
+                <!-- Logs Terminal -->
+                <div class="glass p-8 rounded-3xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold">📟 LIVE_ORCHESTRATOR_LOGS</h2>
+                        <span class="text-[10px] bg-white/10 px-2 py-1 rounded text-white/60">TTY: VORTEX_01</span>
+                    </div>
+                    <div id="logs" class="bg-black/40 rounded-2xl p-6 h-64 overflow-y-auto mono text-xs leading-relaxed border border-white/5 scrollbar-hide">
+                        <div class="text-cyan-500/60">> VORTEX ENGINE INITIALIZED...</div>
+                        <div class="text-white/20">> STANDBY: WAITING FOR TRIGGER...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const projectList = document.getElementById('projectList');
+        const logs = document.getElementById('logs');
+        const deployForm = document.getElementById('deployForm');
+
+        function addLog(msg, color = 'text-white/40') {
+            const line = document.createElement('div');
+            line.className = color;
+            line.innerText = `> ${msg}`;
+            logs.appendChild(line);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        async function fetchProjects() {
+            const res = await fetch('/projects');
+            const projects = await res.json();
+            projectList.innerHTML = projects.length ? projects.map(p => `
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-cyan-500/20 transition-all">
+                    <div>
+                        <div class="font-bold text-sm">${p.name.toUpperCase()}</div>
+                        <div class="text-[10px] text-white/40 uppercase mt-1 tracking-wider">
+                            Deployed: ${new Date(p.deployedAt).toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="/host/${p.name}/index.html" target="_blank" class="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-bold rounded-full hover:bg-green-500/20 transition-all">VIEW_LIVE</a>
+                        <button class="text-white/20 hover:text-white transition-colors">⚙️</button>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-white/20 text-sm">No active deployments detected.</p>';
+        }
+
+        deployForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const projectName = document.getElementById('projectName').value;
+            const repoUrl = document.getElementById('repoUrl').value;
+
+            addLog(`SIGNAL_RECEIVED: DEPLOY ${projectName.toUpperCase()}`, 'text-cyan-400 font-bold');
+            addLog(`SYNCHRONIZING WITH GITHUB: ${repoUrl}`, 'text-blue-400');
+
+            try {
+                const res = await fetch('/deploy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectName, repoUrl })
+                });
+                
+                const data = await res.json();
+                addLog(`BUILD_SUCCESS: ${projectName.toUpperCase()} IS LIVE`, 'text-green-400 font-bold');
+                addLog(`TARGET: http://localhost:3000/host/${projectName}/index.html`, 'text-green-400/60');
+                fetchProjects();
+                deployForm.reset();
+            } catch (err) {
+                addLog(`ERROR: ${err.message}`, 'text-red-400 font-bold');
+            }
+        };
+
+        fetchProjects();
+        setInterval(fetchProjects, 10000);
+    </script>
+</body>
+</html>
