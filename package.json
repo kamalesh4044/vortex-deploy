@@ -1,0 +1,21 @@
+{
+  "name": "vortex-deploy",
+  "version": "1.0.0",
+  "description": "A self-hosted, high-performance deployment engine for modern web apps.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "simple-git": "^3.24.0",
+    "dockerode": "^4.0.2",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
